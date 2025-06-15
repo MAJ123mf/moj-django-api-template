@@ -33,7 +33,13 @@ class LoginView(View):
                     # in followoing requests, know who is the user and if
                     # he is already authenticated. 
                     # The coockies are sent in the response header on POST requests
-            return JsonResponse({"ok":True,"message": "User {0} logged in".format(username), "data":[{"username": username}]})
+            return JsonResponse({"ok":True,
+                                 "message": "User {0} logged in".format(username), 
+                                 "data":[{
+                                    "username": username,
+                                    "groups": list(user.groups.values_list("name", flat=True))
+                                    }]
+                                })
         else:
             # To make thinks difficult to hackers, you make a random delay,
             # between 0 and 1 second
@@ -57,3 +63,22 @@ class IsLoggedIn(View):
             return JsonResponse({"ok":True,"message": "You are authenticated", "data":[{'username':request.user.username}]})
         else:
             return JsonResponse({"ok":False,"message": "You are not authenticated", "data":[]})
+
+            
+class CheckLoginView(View):
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return JsonResponse({
+                "ok": True,
+                "message": "User is authenticated",
+                "data": [{
+                    "username": request.user.username,
+                    "groups": list(request.user.groups.values_list("name", flat=True))
+                }]
+            })
+        else:
+            return JsonResponse({
+                "ok": False,
+                "message": "User is not authenticated",
+                "data": []
+            })
